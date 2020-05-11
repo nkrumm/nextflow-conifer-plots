@@ -7,11 +7,22 @@
  * A pipeline to create CNV plots that include CoNIFER output
  */
 
+// helper functions
+def maybe_local(fname){
+    // Address the special case of using test files in this project
+    // when running in batchman, or more generally, run-from-git.
+    if(file(fname).exists() || fname.startsWith('s3://')){
+        return file(fname)
+    }else{
+        file("$workflow.projectDir/" + fname)
+    }
+}
+
 // read in input files
 inputs_ch = Channel.fromPath(params.input).map { file -> tuple(file.baseName.split("\\.")[0], file) }
 
 // assay-specific parameters
-filtered_refgene = file(params.assays[params.assay].ref_gene, checkIfExists: true)
+filtered_refgene = file(maybe_local(params.assays[params.assay].ref_gene), checkIfExists: true)
 conifer_baseline = file(params.assays[params.assay].cnv_callers[params.cnv_caller].conifer_baseline, checkIfExists: true)
 components_removed = params.assays[params.assay].cnv_callers[params.cnv_caller].conifer_components
 cnv_caller = params.cnv_caller
