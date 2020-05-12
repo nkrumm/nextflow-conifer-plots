@@ -1,6 +1,6 @@
 {
   "properties": {
-    "input": {
+    "manifest": {
       "title": "Path to manifest file (csv with header: sample_id, sample_bam, control_bam)",
       "default": "",
       "type": "string"
