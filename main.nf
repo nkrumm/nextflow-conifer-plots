@@ -88,8 +88,6 @@ process contra {
     """
 }
 
-inputs_ch = Channel.fromPath(params.input).map { file -> tuple(file.baseName.split("\\.")[0], file) }
-
 process make_cnv_plottable {
     input:
         tuple sample_id, file(cnv_file) from contra_out_ch
