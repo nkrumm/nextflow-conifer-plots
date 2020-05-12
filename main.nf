@@ -20,9 +20,11 @@ def maybe_local(fname){
 
 
 // assay-specific parameters
+
+genome_fasta = file(params.genome_fasta)
+target_file = file(params.target_file)
+
 vars = params.assays[params.assay]
-genome_fasta = file(vars.genome_fasta)
-target_file = file(vars.target_file)
 filtered_refgene = file(maybe_local(vars.ref_gene), checkIfExists: true)
 conifer_baseline = file(vars.cnv_callers[params.cnv_caller].conifer_baseline, checkIfExists: true)
 components_removed = vars.cnv_callers[params.cnv_caller].conifer_components
@@ -30,10 +32,9 @@ cnv_caller = params.cnv_caller
 cnv_median_window = vars.cnv_window
 cnv_log_threshold = vars.cnv_min_log
 
-
 // read in input files
 if (params.manifest){
-    bam_ch = Channel.fromPath(params.manifest)
+    Channel.fromPath(params.manifest)
         .splitCsv(header: true)
         .map { [
             it.sample_id, 
@@ -43,9 +44,10 @@ if (params.manifest){
             file(it.control_bam + ".bai")
          ] }
         .view()
+        .set { bam_ch }
 } else if (params.sample_bam && params.control_bam) {
     sample_bam = file(params.sample_bam)
-    bam_ch = Channel.from([
+    Channel.from([
         sample_bam.baseName,
         sample_bam,
         file(params.sample_bam + ".bai"),
@@ -53,6 +55,7 @@ if (params.manifest){
         file(params.control_bam + ".bai")
         ])
         .view()
+        .set { bam_ch }
 } else {
     error "Error: Please specify either a manifest or sample_bam/control_bam in the parameters!"
 }
@@ -65,8 +68,8 @@ process contra {
     cpus 2
     input:
         set sample_id, file(sample_bam), file(sample_bai), file(control_bam), file(control_bai) from bam_ch
-        file target from target_file
-        file genome_fa from genome_fasta_file
+        file(target) from target_file
+        file(genome_fa) from genome_fasta
 
     output:
         set sample_id, file("out/table/*bins.txt") into contra_out_ch
