@@ -14,11 +14,18 @@
       "title": "AND path to control bam",
       "default": "",
       "type": "string"
+    },
+    "assay": {
+      "default": "OPXv6",
+      "title": "Assay/Baseline",
+      "type": "string",
+      "enum": [
+        "OPXv6"
+      ]
     }
-
-
   },
   "required": [
+    "assay"
   ],
   "type": "object"
 }
