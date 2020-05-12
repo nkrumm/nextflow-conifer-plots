@@ -1,0 +1,25 @@
+{
+  "properties": {
+    "input": {
+      "title": "Path to manifest file (csv with header: sample_id, sample_bam, control_bam)",
+      "default": "",
+      "type": "string"
+    },
+    "sample_bam": {
+      "title": "OR path to sample bam",
+      "default": "",
+      "type": "string"
+    },
+    "control_bam": {
+      "title": "AND path to control bam",
+      "default": "",
+      "type": "string"
+    }
+
+
+  },
+  "required": [
+  ],
+  "type": "object"
+}
+

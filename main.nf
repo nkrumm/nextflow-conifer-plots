@@ -18,20 +18,78 @@ def maybe_local(fname){
     }
 }
 
-// read in input files
-inputs_ch = Channel.fromPath(params.input).map { file -> tuple(file.baseName.split("\\.")[0], file) }
 
 // assay-specific parameters
-filtered_refgene = file(maybe_local(params.assays[params.assay].ref_gene), checkIfExists: true)
-conifer_baseline = file(params.assays[params.assay].cnv_callers[params.cnv_caller].conifer_baseline, checkIfExists: true)
-components_removed = params.assays[params.assay].cnv_callers[params.cnv_caller].conifer_components
+vars = params.assays[params.assay]
+genome_fasta = file(vars.genome_fasta)
+target_file = file(vars.target_file)
+filtered_refgene = file(maybe_local(vars.ref_gene), checkIfExists: true)
+conifer_baseline = file(vars.cnv_callers[params.cnv_caller].conifer_baseline, checkIfExists: true)
+components_removed = vars.cnv_callers[params.cnv_caller].conifer_components
 cnv_caller = params.cnv_caller
-cnv_median_window = params.assays[params.assay].cnv_window
-cnv_log_threshold = params.assays[params.assay].cnv_min_log
+cnv_median_window = vars.cnv_window
+cnv_log_threshold = vars.cnv_min_log
+
+
+// read in input files
+if (params.manifest){
+    bam_ch = Channel.fromPath(params.manifest)
+        .splitCsv(header: true)
+        .map { [
+            it.sample_id, 
+            file(it.sample_bam),
+            file(it.sample_bam + ".bai"),
+            file(it.control_bam),
+            file(it.control_bam + ".bai")
+         ] }
+        .view()
+} else if (params.sample_bam && params.control_bam) {
+    sample_bam = file(params.sample_bam)
+    bam_ch = Channel.from([
+        sample_bam.baseName,
+        sample_bam,
+        file(params.sample_bam + ".bai"),
+        file(params.control_bam),
+        file(params.control_bam + ".bai")
+        ])
+        .view()
+} else {
+    error "Error: Please specify either a manifest or sample_bam/control_bam in the parameters!"
+}
+
+process contra {
+    label 'contra'
+    echo true
+    memory '12 GB'
+    errorStrategy 'ignore'
+    cpus 2
+    input:
+        set sample_id, file(sample_bam), file(sample_bai), file(control_bam), file(control_bai) from bam_ch
+        file target from target_file
+        file genome_fa from genome_fasta_file
+
+    output:
+        set sample_id, file("out/table/*bins.txt") into contra_out_ch
+
+    script:
+    """
+    contra.py \
+            --target=${target} \
+            --test=${sample_bam} \
+            --control=${control_bam} \
+            --sampleName=${sample_id} \
+            --fasta=${genome_fa} \
+            --outFolder=out/ \
+            --nomultimapped \
+            --minExon=2000
+    """
+}
+
+inputs_ch = Channel.fromPath(params.input).map { file -> tuple(file.baseName.split("\\.")[0], file) }
 
 process make_cnv_plottable {
     input:
-        tuple sample_id, file(cnv_file) from inputs_ch
+        tuple sample_id, file(cnv_file) from contra_out_ch
         path conifer_baseline
         path filtered_refgene 
 
