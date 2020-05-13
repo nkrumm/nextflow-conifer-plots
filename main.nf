@@ -90,8 +90,8 @@ process contra {
 process make_cnv_plottable {
     input:
         tuple(val(sample_id), file(cnv_file)) from contra_out_ch
-        path conifer_baseline
-        path filtered_refgene 
+        file(conifer_baseline) from conifer_baseline
+        file(filtered_refgene) from filtered_refgene
 
     output:
         tuple sample_id, file("${sample_id}.${cnv_caller}.conifer.CNV_plottable.tsv") into cnv_plottables_ch
@@ -116,7 +116,7 @@ process make_cnv_plottable {
 process plot_cnv {
     input:
         tuple sample_id, file(plottable_file) from cnv_plottables_ch
-        path filtered_refgene
+        file(filtered_refgene) from filtered_refgene
 
     output:
         file("${sample_id}.CNV.pdf")
