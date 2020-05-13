@@ -26,7 +26,7 @@ target_file = file(params.target_file)
 
 vars = params.assays[params.assay]
 filtered_refgene = file(maybe_local(vars.ref_gene), checkIfExists: true)
-conifer_baseline = file(vars.cnv_callers[params.cnv_caller].conifer_baseline, checkIfExists: true)
+conifer_baseline = file("${params.conifer_baselines_directory}/${vars.cnv_callers[params.cnv_caller].conifer_baseline}", checkIfExists: true)
 components_removed = vars.cnv_callers[params.cnv_caller].conifer_components
 cnv_caller = params.cnv_caller
 cnv_median_window = vars.cnv_window
