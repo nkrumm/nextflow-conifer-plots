@@ -71,7 +71,7 @@ process contra {
         file(genome_fa) from genome_fasta
 
     output:
-        set sample_id, file("out/table/*bins.txt") into contra_out_ch
+        tuple(val(sample_id), file("out/table/*bins.txt")) into contra_out_ch
 
     script:
     """
@@ -89,7 +89,7 @@ process contra {
 
 process make_cnv_plottable {
     input:
-        tuple sample_id, file(cnv_file) from contra_out_ch
+        tuple(val(sample_id), file(cnv_file)) from contra_out_ch
         path conifer_baseline
         path filtered_refgene 
 
