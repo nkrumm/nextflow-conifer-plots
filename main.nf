@@ -62,7 +62,6 @@ if (params.manifest){
 
 process contra {
     label 'contra'
-    echo true
     memory '12 GB'
     errorStrategy 'ignore'
     cpus 2
