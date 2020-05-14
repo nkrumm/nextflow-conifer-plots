@@ -7,7 +7,8 @@ RUN apt-get update && \
     ca-certificates \
     python2.7-dev \
     gcc \
-    locales
+    locales \
+    procps
 
 RUN pip install \
     numpy>1.10.1 \
